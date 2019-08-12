@@ -1,0 +1,77 @@
+﻿<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="javascripts/leaflet.css" />
+        <script type="text/javascript" src="javascripts/leaflet.js"></script>
+        <script type="text/javascript" src="javascripts/leaflet-hash.js"></script>
+    </head>
+
+    <body>
+        <div id="map" style="width:100%; height:100%"></div>
+        <script type="text/javascript">
+            var map = L.map('map').setView([49.1828, -0.3672], 13);
+            var hash = new L.Hash(map);
+
+            var IgnOrtho = L.tileLayer("https://wxs.ign.fr/choisirgeoportail/geoportail/wmts?service=WMTS&request=GetTile&version=1.0.0&tilematrixset=PM&tilematrix={z}&tilecol={x}&tilerow={y}&layer=ORTHOIMAGERY.ORTHOPHOTOS&format=image/jpeg&style=normal",
+                {
+                    minZoom: 0,
+                    maxZoom: 18,
+                    tileSize: 256,
+                    opacity: 0.66,
+                    attribution: "IGN - Geoportail"
+                });
+            map.addLayer(IgnOrtho);
+            
+            var IgnPlan = L.tileLayer("https://wxs.ign.fr/choisirgeoportail/geoportail/wmts?service=WMTS&request=GetTile&version=1.0.0&tilematrixset=PM&tilematrix={z}&tilecol={x}&tilerow={y}&layer=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-EXPRESS.STANDARD&format=image/jpeg&style=normal",
+                {
+                    minZoom: 0,
+                    maxZoom: 18,
+                    tileSize: 256,
+                    opacity: 0.4,
+                    attribution: "IGN - Geoportail"
+                });
+            map.addLayer(IgnPlan);
+            
+            var commune = L.tileLayer.wms("http://ws.carmen.developpement-durable.gouv.fr/WMS/8/zpp?", {
+                layers: 'commune',
+                format: 'image/png',
+                transparent: true,
+                attribution: "IGN - Geoportail"
+            });
+            map.addLayer(commune);
+            
+            var zppPost1950 = L.tileLayer.wms("http://ws.carmen.developpement-durable.gouv.fr/WMS/8/zpp?", {
+                layers: 'Zone_pavillonaire_post_1950',
+                format: 'image/png',
+                transparent: true,
+                opacity: 0.6,
+                attribution: "DREAL Normandie"
+            });
+            map.addLayer(zppPost1950);
+            
+            var baseMaps 
+            var refMaps = {
+              "Photographie aérienne": IgnOrtho,
+              "Plan": IgnPlan,
+              "Limites communales": commune,
+              "Zones pavillonaires post 1950": zppPost1950,
+            };
+
+            L.control.layers(baseMaps,refMaps).addTo(map);
+            
+            map.addEventListener('click', onZpp);
+            popup = new L.Popup({maxWidth: 1000});
+            function onZpp(e) {
+              var bbox =  map.getBounds().toBBoxString();
+              var width = map.getSize().x;
+              var height = map.getSize().y;
+              var x = map.layerPointToContainerPoint(e.layerPoint).x;
+              var y = map.layerPointToContainerPoint(e.layerPoint).y;
+              var URL = 'http://ws.carmen.developpement-durable.gouv.fr/WMS/8/zpp?request=GetFeatureInfo&service=WMS&version=1.1.0&query_layers=Zone_pavillonaire_post_1950&layers=Zone_pavillonaire_post_1950&info_format=text%2Fplain&srs=EPSG:4326&bbox='+bbox+'&width='+width+'&height='+height+'&i='+x+'&j='+y;
+              popup.setLatLng(e.latlng);
+              popup.setContent("<iframe src='"+URL+"' width='400' height='400' frameborder='0'></iframe>");
+              map.openPopup(popup);
+}
+        </script>
+    </body>
+</html>

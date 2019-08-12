@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="us">
+<head>
+    <meta charset="utf-8">
+    <title>DREAL Normandie - Etude sur le devenir des Zones Pavillonnaires Périurbaines</title>
+    <link href="javascripts/jquery-ui.min.css" rel="stylesheet">
+    <script src="javascripts/external/jquery/jquery.js"></script>
+    <script src="javascripts/jquery-ui.js"></script>
+    <script>
+      $(function() {
+        $( "#commune" ).autocomplete({
+            source: function(request, response){
+              $.ajax({
+                url : 'https://geo.api.gouv.fr/communes?boost=population&codeRegion=28&fields=centre&format=json&geometry=centre'+$("input[name='commune']").val(),
+                data: { nom: request.term },
+                dataType : 'json',
+                
+                success : function(data){
+                  var cities = [];
+                  response($.map(data, function(item){
+                    return {
+                      label: item.nom + ' (' + (item.code).substring(0,2)+')',
+                      information: 'nom : '+item.nom+', code insee : '+item.code+', centre : ('+(item.centre).coordinates[0]+','+(item.centre).coordinates[1]+')',
+                      code: item.code,
+                      url: 'http://www.donnees.normandie.developpement-durable.gouv.fr/CarteHtml/zpp/zpp.html#13/'+(item.centre).coordinates[1]+'/'+(item.centre).coordinates[0],
+                      
+                    };
+                  }));
+                }
+              });
+            },
+            select: function(event, ui) {
+              $( "#information" ).html(ui.item.information );
+              $( "#carte" ).attr("src", ui.item.url );
+            },
+             minLength: 3,
+        });
+      });
+    </script>
+</head>
+<body>
+  commune recherchée : <input name="commune" id="commune" title="tapez les premières lettre de la commune recherchée">
+  <p name="information" id = "information"></p>
+  <iframe id="carte"
+    title="carte"
+    width="800"
+    height="800"
+    src="http://www.donnees.normandie.developpement-durable.gouv.fr/CarteHtml/zpp/zpp.html#8/48.991/-0.104">
+  </iframe>
+</body>
+</html>
